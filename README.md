@@ -1,0 +1,2 @@
+# ZQZ.Co
+AIGC things
