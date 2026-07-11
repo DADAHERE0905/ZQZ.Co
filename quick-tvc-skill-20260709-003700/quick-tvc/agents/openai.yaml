@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quick TVC"
+  short_description: "Turn references into premium ad video prompts"
+  default_prompt: "Use $quick-tvc to turn my product image, reference video, reference images, and script into a premium original ad video workflow."
