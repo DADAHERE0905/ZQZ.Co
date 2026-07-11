@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "profile_status": "draft",
+  "subject": {
+    "subject_id": "",
+    "display_name": "",
+    "disambiguation": [],
+    "real_person": true,
+    "default_target_era": ""
+  },
+  "rights": {
+    "public_index_is_not_training_authorization": true,
+    "production_authorized": false,
+    "production_authorized_scope": {
+      "likeness": null,
+      "ai_training": null,
+      "reference_conditioning": null,
+      "biometric_processing": null,
+      "derivative_outputs": null,
+      "commercial_advertising": null,
+      "territory": null,
+      "term": null
+    },
+    "production_gate": "",
+    "manifest_file": "source-manifest.csv",
+    "known_model_license_risk": ""
+  },
+  "era_states": [],
+  "stable_identity_features": {
+    "face_shape": {
+      "value": "",
+      "confidence": "low",
+      "positive_anchors": [],
+      "negative_anchors": [],
+      "source_ids": []
+    },
+    "cheeks": {},
+    "jaw_and_chin": {},
+    "eyebrows": {},
+    "eyes": {},
+    "nose": {},
+    "mouth": {},
+    "facial_hair": {},
+    "non_identity_variables": []
+  },
+  "geometry": {
+    "normalization": "",
+    "detector": {"name": "", "version": "", "preprocessing_hash": ""},
+    "measurement_quality_gate": {
+      "high": "minimum detected face dimension >=160 px",
+      "medium": "minimum detected face dimension 96-159 px",
+      "low": "minimum detected face dimension <96 px"
+    },
+    "canonical_near_frontal_ranges": {},
+    "source_measurement_notes": []
+  },
+  "expression_prototypes": [],
+  "prompt_anchor": {
+    "identity": "",
+    "variable_expression": "",
+    "negative": "",
+    "warning": "Prompt is auxiliary and must not replace authorized reference conditioning, trained identity priors, or QC."
+  },
+  "gallery_plan": {
+    "leakage_audit_passed": false,
+    "identity_clusters": [],
+    "conditioning_gallery": {"status": "planned", "target_era_coverage_status": "incomplete", "approved_shot_list_reference": "", "source_ids": [], "member_records": []},
+    "expression_gallery": {"status": "planned", "source_ids": [], "member_records": []},
+    "training_set": {"status": "planned", "source_ids": [], "member_records": []},
+    "holdout_set": {"status": "planned", "source_ids": [], "member_records": []},
+    "hard_negatives": {"status": "planned", "source_ids": [], "member_records": [], "training_allowed": false}
+  },
+  "generation_recipe_policy": {},
+  "qc": {
+    "status": "uncalibrated",
+    "threshold_policy": "project-calibrated",
+    "identity_matchers_required": 2,
+    "identity_matchers": [],
+    "calibrated_thresholds": [],
+    "genuine_pair_count": 0,
+    "impostor_pair_count": 0,
+    "holdout_isolated": false,
+    "calibration_dataset_hash": null,
+    "expression_gate_status": "uncalibrated",
+    "expression_calibration_hash": null,
+    "geometry_envelope_status": "uncalibrated",
+    "geometry_envelope_hash": null,
+    "metrics": [],
+    "suggested_gates": {},
+    "human_review_required": true
+  },
+  "known_gaps": []
+}

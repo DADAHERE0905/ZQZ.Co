@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "",
+  "timestamp_utc": "",
+  "subject_id": "",
+  "target_era": "",
+  "shot_id": "",
+  "identity_profile": {
+    "path": "",
+    "schema_version": "",
+    "sha256": ""
+  },
+  "authorized_source_manifest": {
+    "path": "",
+    "sha256": ""
+  },
+  "preprocessing": {
+    "pipeline_version": "",
+    "face_detector": "",
+    "alignment": "",
+    "crop_policy": "",
+    "resolution": "",
+    "hash": ""
+  },
+  "models": {
+    "base_model": {"name": "", "version": "", "hash": "", "license_review": ""},
+    "character_lora": {"name": "", "hash": "", "weight": null, "training_data_hash": ""},
+    "identity_adapter": {"name": "", "hash": "", "weight": null, "license_review": ""},
+    "pose_or_depth_controls": [],
+    "video_model": {"name": "", "hash": "", "license_review": ""}
+  },
+  "conditioning": {
+    "source_ids": [],
+    "pose_cluster": "",
+    "identity_cluster_id": "",
+    "expression_id": "",
+    "driving_asset_id": ""
+  },
+  "prompts": {
+    "prompt_text": "",
+    "prompt_file": "",
+    "prompt_sha256": "",
+    "negative_prompt_text": "",
+    "negative_prompt_file": "",
+    "negative_prompt_sha256": ""
+  },
+  "sampling": {
+    "sampler": "",
+    "steps": null,
+    "cfg": null,
+    "seed": null,
+    "scheduler": "",
+    "precision": ""
+  },
+  "environment": {
+    "os": "",
+    "hardware": "",
+    "gpu_driver": "",
+    "runtime": "",
+    "dependency_lock_hash": ""
+  },
+  "output": {
+    "path": "",
+    "sha256": "",
+    "width": null,
+    "height": null,
+    "frame_count": null,
+    "fps": null
+  }
+}

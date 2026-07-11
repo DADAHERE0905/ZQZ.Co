@@ -1,0 +1,99 @@
+ObjC.import('Foundation')
+ObjC.import('CoreImage')
+ObjC.import('Vision')
+
+function number(value) {
+  if (value === null || value === undefined) return null
+  try {
+    return Number(ObjC.unwrap(value))
+  } catch (_) {
+    return Number(value)
+  }
+}
+
+function pointRegion(region) {
+  if (!region) return null
+  const count = Number(region.pointCount)
+  if (!count) return { count: 0, encoding: 'cgpoint-f64le', data: '' }
+  const byteLength = count * 16
+  const data = $.NSData.dataWithBytesLength(region.normalizedPoints, byteLength)
+  return {
+    count: count,
+    encoding: 'cgpoint-f64le',
+    data: ObjC.unwrap(data.base64EncodedStringWithOptions(0))
+  }
+}
+
+function observationJSON(observation) {
+  const landmarks = observation.landmarks
+  return {
+    confidence: number(observation.confidence),
+    bounding_box: {
+      x: Number(observation.boundingBox.origin.x),
+      y: Number(observation.boundingBox.origin.y),
+      width: Number(observation.boundingBox.size.width),
+      height: Number(observation.boundingBox.size.height)
+    },
+    yaw_radians: number(observation.yaw),
+    roll_radians: number(observation.roll),
+    pitch_radians: number(observation.pitch),
+    landmarks: {
+      face_contour: pointRegion(landmarks ? landmarks.faceContour : null),
+      left_eye: pointRegion(landmarks ? landmarks.leftEye : null),
+      right_eye: pointRegion(landmarks ? landmarks.rightEye : null),
+      left_eyebrow: pointRegion(landmarks ? landmarks.leftEyebrow : null),
+      right_eyebrow: pointRegion(landmarks ? landmarks.rightEyebrow : null),
+      left_pupil: pointRegion(landmarks ? landmarks.leftPupil : null),
+      right_pupil: pointRegion(landmarks ? landmarks.rightPupil : null),
+      nose: pointRegion(landmarks ? landmarks.nose : null),
+      nose_crest: pointRegion(landmarks ? landmarks.noseCrest : null),
+      median_line: pointRegion(landmarks ? landmarks.medianLine : null),
+      outer_lips: pointRegion(landmarks ? landmarks.outerLips : null),
+      inner_lips: pointRegion(landmarks ? landmarks.innerLips : null)
+    }
+  }
+}
+
+function imageJSON(path) {
+  const url = $.NSURL.fileURLWithPath(path)
+  const image = $.CIImage.imageWithContentsOfURL(url)
+  if (!image) {
+    return { path: path, pixel_width: 0, pixel_height: 0, faces: [], error: 'Cannot decode image' }
+  }
+
+  const request = $.VNDetectFaceLandmarksRequest.alloc.init
+  request.revision = 3
+  const handler = $.VNImageRequestHandler.alloc.initWithCIImageOptions(image, $({}))
+  const error = Ref()
+  const ok = handler.performRequestsError($([request]), error)
+  if (!ok) {
+    return {
+      path: path,
+      pixel_width: Number(image.extent.size.width),
+      pixel_height: Number(image.extent.size.height),
+      faces: [],
+      error: 'Vision request failed'
+    }
+  }
+
+  const faces = []
+  const results = request.results
+  for (let i = 0; i < Number(results.count); i += 1) {
+    faces.push(observationJSON(results.objectAtIndex(i)))
+  }
+  faces.sort(function (a, b) {
+    return (b.bounding_box.width * b.bounding_box.height) - (a.bounding_box.width * a.bounding_box.height)
+  })
+
+  return {
+    path: path,
+    pixel_width: Number(image.extent.size.width),
+    pixel_height: Number(image.extent.size.height),
+    faces: faces,
+    error: null
+  }
+}
+
+function run(argv) {
+  return JSON.stringify(argv.map(imageJSON))
+}

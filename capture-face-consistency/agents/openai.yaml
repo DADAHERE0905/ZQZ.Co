@@ -1,0 +1,4 @@
+interface:
+  display_name: "Face Consistency Capture"
+  short_description: "Build a source-backed face bible and consistency workflow"
+  default_prompt: "Use $capture-face-consistency to build a licensed identity profile, expression set, generation recipe, and consistency QC plan."
