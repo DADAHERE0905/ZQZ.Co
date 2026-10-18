@@ -79,6 +79,9 @@ Cluster identity references by `era × yaw band × appearance state`. Save a nor
 
 ### 4. Extract geometry with quality gates
 
+Read [measurement backends](references/measurement-backends.md) for installation,
+model provisioning, per-image human reviews, field definitions, errors and tests.
+
 On macOS, run:
 
 ```bash
@@ -93,7 +96,37 @@ The script uses local macOS Vision landmarks and does not identify people. It la
 - medium quality: 96–159 px;
 - low quality: <96 px, excluded from aggregate summaries by default.
 
-On non-macOS systems, use a local Face Landmarker such as MediaPipe and map the results to the same normalized fields. If no validated landmark tool exists, write qualitative features and leave numeric fields null; never invent ratios.
+On Windows, Linux, or macOS with a local MediaPipe model, run:
+
+```bash
+python scripts/measure_faces.py IMAGE --backend mediapipe \
+  --model models/face_landmarker.task --output measurement.json
+```
+
+Keep `--backend mediapipe` explicit across a mixed-OS team. `auto` keeps Vision
+on macOS and selects MediaPipe elsewhere; never combine these measurements.
+MediaPipe uses a mesh-oval box, not Vision's detector box. Preserve the legacy
+unit-square normalization and record its anisotropic distance/aspect/tilt
+limitations. Keep unavailable Vision contour and unvalidated pose fields `null`.
+Do not transfer thresholds or ranges between measurement signatures.
+
+Inspect `candidate_faces` and visually confirm every subject, including a sole
+detected face. Bind that decision to the image hash, measurement signature,
+source ID, era and selected face box in `--review-file`. Treat `--face-index` as
+a selection only. It does not establish identity or canonical approval.
+Use `canonical_profile_summary` only after the reviewer explicitly approves
+neutral/near-frontal geometry. Keep `summary` descriptive. Neither observed
+min/max nor an exit code of zero establishes a calibrated production gate.
+Never override low quality into canonical aggregates with `--include-low-quality`.
+
+Use `scripts/compare_geometry.py` for same-signature, same-subject/era diagnostics
+on reviewed comparable frames. Supply a project-calibrated, owner-approved
+envelope for geometry range decisions. Keep the two independent identity
+matchers and human likeness review: this tool does not identify people, track
+faces in video, detect identity swaps, or produce calibrated FACS intensities.
+
+If no usable landmark backend exists, write qualitative features and leave
+numeric fields null; never invent ratios.
 
 Measure canonical geometry only on manually confirmed, near-frontal, neutral or low-intensity frames. Exclude crying, exertion, open-mouth victory, heavy occlusion, text overlays, severe pitch, and strong profile views from the canonical aggregate.
 

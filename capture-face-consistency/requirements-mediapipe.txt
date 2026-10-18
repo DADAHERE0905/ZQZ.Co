@@ -1,0 +1,4 @@
+# Reproducible direct dependencies; use CPython 3.10–3.12 (64-bit).
+# Freeze the full resolved environment in each production run manifest.
+mediapipe==0.10.21
+Pillow==11.3.0

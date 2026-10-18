@@ -1,0 +1,54 @@
+name: Capture face measurement
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'capture-face-consistency/**'
+      - '.github/workflows/capture-face-measurement.yml'
+  pull_request:
+    paths:
+      - 'capture-face-consistency/**'
+      - '.github/workflows/capture-face-measurement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  measurement:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: capture-face-consistency/requirements-mediapipe.txt
+      - name: Contract tests without ML dependencies
+        run: python -m unittest discover -s capture-face-consistency/tests -v
+      - name: Install pinned inference dependencies
+        run: python -m pip install -r capture-face-consistency/requirements-mediapipe.txt
+      - name: Provision public smoke assets outside the repository
+        shell: python
+        run: |
+          import hashlib
+          import os
+          from pathlib import Path
+          from urllib.request import urlretrieve
+          root = Path(os.environ['RUNNER_TEMP']) / 'cfc-smoke'
+          root.mkdir(exist_ok=True)
+          model = root / 'face_landmarker.task'
+          portrait = root / 'portrait.jpg'
+          urlretrieve('https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task', model)
+          assert hashlib.sha256(model.read_bytes()).hexdigest() == '64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff'
+          urlretrieve('https://storage.googleapis.com/mediapipe-assets/portrait.jpg', portrait)
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
+              env.write(f'CFC_MODEL={model}\nCFC_IMAGE={portrait}\n')
+      - name: Local CPU inference and CLI tests
+        run: python -m unittest discover -s capture-face-consistency/tests -v

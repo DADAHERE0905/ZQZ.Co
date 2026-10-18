@@ -104,6 +104,15 @@ Do not infer personality, intelligence, health, ancestry, or intent from appeara
 
 Normalize landmark coordinates and distances to the detected face bounding box unless a validated 3D coordinate system is used. Store the detector, version, preprocessing hash, and orientation handling.
 
+For measurement JSON v2, also preserve `measurement_signature`, model SHA-256,
+landmark schema and face-box definition from `detector`. Read
+[measurement-backends.md](measurement-backends.md) before mixing or importing
+measurements. The historical names below describe the legacy unit-square
+features: x is divided by box width and y by box height independently. Thus a
+Euclidean distance or aspect/tilt in this space is not generally the physical
+pixel-space value suggested by its name. Preserve this definition when using
+old profiles; a new isotropic convention needs a new signature and calibration.
+
 Recommended 2D metrics:
 
 | Field | Definition |
@@ -122,7 +131,20 @@ Recommended 2D metrics:
 
 Treat detector-specific metrics as internal comparison features, not anthropometric truth.
 
+MediaPipe maps rim-center/eye/brow/lip features and an explicit alar-width proxy
+into the compatible names. All mapped values remain backend-specific.
+`lower_jaw_width_over_contour_width` and
+`vision_lower_face_contour_height_over_width` are `null` on MediaPipe; its full
+oval is not a Vision lower-face contour. Pose is also left `null` until a
+separately validated convention is implemented. Do not fill these gaps with
+zero, a guessed range, or another backend's values.
+
 `scripts/measure_faces.py` emits a `profile_metrics` object using the field names in this table. After a frame passes the neutral/low-expression canonical gate, map `eye_height_over_eye_width`, `mouth_width_over_face_width`, `mouth_width_over_eye_center_distance`, and `mouth_height_over_mouth_width` into the profile's corresponding `neutral_*` range fields. Never add the `neutral_` label to a smile, speech, crying, shout, or exertion sample.
+
+Prefer the human-reviewed `canonical_profile_summary` for this mapping. It adds
+those prefixes only after explicit canonical approval and preserves missing
+metrics as missing. Its median/min/max/count are observed sample statistics,
+not a calibrated 95% envelope; retain the schema's production gates.
 
 ### Quality classes
 
