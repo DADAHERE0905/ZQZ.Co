@@ -158,11 +158,15 @@ class InferenceTests(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform == "darwin", "Apple Vision needs native macOS")
     def test_native_vision_entry_point(self):
-        run = subprocess.run([sys.executable, str(SCRIPTS / "measure_faces.py"), "--backend", "vision", str(IMAGE)], capture_output=True, text=True)
+        run = subprocess.run([sys.executable, str(SCRIPTS / "measure_faces.py"), "--backend", "vision", "--vision-cpu-only", "--raw", str(IMAGE)], capture_output=True, text=True)
         self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
         output = json.loads(run.stdout)
         self.assertEqual(output["detector"]["name"], "vision")
         self.assertEqual(output["images"][0]["face_count"], 1)
+        self.assertTrue(output["detector"]["uses_cpu_only"])
+        eyes = output["images"][0]["landmarks"]["left_eye"]
+        self.assertTrue(eyes)
+        self.assertTrue(all(-0.1 <= coordinate <= 1.1 for point in eyes for coordinate in point))
 
 
 if __name__ == "__main__":

@@ -71,6 +71,11 @@ The legacy macOS command still works without installing MediaPipe:
 python scripts/measure_faces.py hero.png --backend vision --output vision.json
 ```
 
+On headless macOS hosts, explicitly try `--vision-cpu-only` if the default
+Vision compute path fails. This mode is recorded in the measurement signature;
+recalibrate before comparing it with the default mode. Vision errors preserve
+the native error description. The macOS CI regression uses this explicit mode.
+
 Inspect every image and the returned `face_box` or `candidate_faces` in the
 EXIF-oriented image. Boxes are image-normalized **bottom-left origin** on both
 backends. For a top-left pixel overlay use `(x*W, (1-y-height)*H, width*W,

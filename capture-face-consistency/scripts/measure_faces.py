@@ -220,13 +220,13 @@ def measurement_contract(metadata: dict) -> dict:
     return {"detector": metadata, "measurement_signature": signature, "preprocessing": preprocessing}
 
 
-def extract_vision(paths: list[str]) -> tuple[list[dict], dict]:
+def extract_vision(paths: list[str], cpu_only: bool = False) -> tuple[list[dict], dict]:
     if sys.platform != "darwin":
         raise BackendError("Vision requires macOS and osascript. Use --backend mediapipe --model PATH on Windows/Linux.")
     script = Path(__file__).with_name("extract_face_landmarks.jxa")
     try:
         process = subprocess.run(
-            ["osascript", "-l", "JavaScript", str(script), *paths],
+            ["osascript", "-l", "JavaScript", str(script), *(["--cpu-only"] if cpu_only else []), *paths],
             check=False, capture_output=True, text=True, timeout=120,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
@@ -248,6 +248,7 @@ def extract_vision(paths: list[str]) -> tuple[list[dict], dict]:
         "name": "vision", "version": f"macOS-{platform.mac_ver()[0]}-request-revision-3",
         "model_sha256": None, "landmark_schema": "VNFaceLandmarks2D-revision-3",
         "face_box_definition": "Vision detected face bounding box",
+        "uses_cpu_only": cpu_only,
         "orientation": "legacy CIImage extent; EXIF behavior requires native verification",
     }
 
@@ -411,6 +412,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--backend", choices=("auto", "vision", "mediapipe"), default="auto",
                         help="auto keeps Vision on macOS and uses MediaPipe elsewhere; never falls back silently")
     parser.add_argument("--model", type=Path, help="Local MediaPipe face_landmarker.task (required for MediaPipe)")
+    parser.add_argument("--vision-cpu-only", action="store_true", help="Explicit CPU-only mode for legacy Vision in headless macOS environments")
     parser.add_argument("--max-faces", type=int, default=10, help="MediaPipe detection capacity (at least 2; default 10, not an identity gate)")
     parser.add_argument("--detection-confidence", type=float, default=0.5, help="MediaPipe documented detection default, not an identity score")
     parser.add_argument("--presence-confidence", type=float, default=0.5, help="MediaPipe documented landmark presence default")
@@ -431,6 +433,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         reviews = load_reviews(args.review_file)
         if backend_name == "mediapipe":
+            if args.vision_cpu_only:
+                raise BackendError("--vision-cpu-only applies only to --backend vision")
             if args.model is None:
                 raise BackendError("MediaPipe requires --model PATH. See references/measurement-backends.md for installation and model download.")
             backend = MediaPipeBackend(args.model, args.max_faces, args.detection_confidence, args.presence_confidence)
@@ -442,7 +446,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             if args.model is not None:
                 raise BackendError("--model applies only to MediaPipe; select --backend mediapipe explicitly on macOS")
-            images, metadata = extract_vision(args.images)
+            images, metadata = extract_vision(args.images, args.vision_cpu_only)
             contract = measurement_contract(metadata)
         output = build_output(images, contract, args.face_index, args.raw, args.include_low_quality, reviews)
         exit_code = 2 if output["status"] != "ok" else 0

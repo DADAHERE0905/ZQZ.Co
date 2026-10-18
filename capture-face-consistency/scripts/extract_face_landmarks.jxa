@@ -54,7 +54,7 @@ function observationJSON(observation) {
   }
 }
 
-function imageJSON(path) {
+function imageJSON(path, cpuOnly) {
   const url = $.NSURL.fileURLWithPath(path)
   const image = $.CIImage.imageWithContentsOfURL(url)
   if (!image) {
@@ -63,16 +63,19 @@ function imageJSON(path) {
 
   const request = $.VNDetectFaceLandmarksRequest.alloc.init
   request.revision = 3
+  if (cpuOnly) request.usesCPUOnly = true
   const handler = $.VNImageRequestHandler.alloc.initWithCIImageOptions(image, $({}))
   const error = Ref()
   const ok = handler.performRequestsError($([request]), error)
   if (!ok) {
+    let detail = ''
+    try { detail = ': ' + ObjC.unwrap(error[0].localizedDescription) } catch (_) {}
     return {
       path: path,
       pixel_width: Number(image.extent.size.width),
       pixel_height: Number(image.extent.size.height),
       faces: [],
-      error: 'Vision request failed'
+      error: 'Vision request failed' + detail
     }
   }
 
@@ -95,5 +98,7 @@ function imageJSON(path) {
 }
 
 function run(argv) {
-  return JSON.stringify(argv.map(imageJSON))
+  const cpuOnly = argv[0] === '--cpu-only'
+  const paths = cpuOnly ? argv.slice(1) : argv
+  return JSON.stringify(paths.map(function (path) { return imageJSON(path, cpuOnly) }))
 }
